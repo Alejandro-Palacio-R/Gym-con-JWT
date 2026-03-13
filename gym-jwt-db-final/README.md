@@ -26,28 +26,44 @@ Este proyecto cumple:
 
 Por defecto corre en `http://localhost:8080`.
 
-## Despliegue en Railway
+## Despliegue en Azure
 
-La app ya esta preparada para Railway:
+La app ya queda lista para Azure App Service o Azure Container Apps:
 
 - Usa el puerto dinamico con `PORT`.
 - Lee el secreto JWT desde `APP_JWT_SECRET`.
-- Guarda H2 en archivo con `DB_PATH` para poder persistir si montas un volumen.
+- Permite configurar la base por variables de entorno.
+- Por defecto guarda H2 en `./data/gymdb`, que funciona localmente y dentro del contenedor.
 
-### Pasos
+### Variables recomendadas
+
+- `APP_JWT_SECRET=pon-aqui-una-clave-larga-y-segura-de-32-caracteres-o-mas`
+- `APP_JWT_EXPIRATION_MS=86400000`
+
+### Si despliegas con H2 en archivo
+
+Si quieres persistencia entre reinicios, define un path persistente en Azure:
+
+- Azure App Service (Linux): `DB_PATH=/home/data/gymdb`
+- Azure Container Apps: monta un volumen y usa algo como `DB_PATH=/mnt/data/gymdb`
+
+Tambien puedes reemplazar H2 por una base administrada configurando:
+
+- `SPRING_DATASOURCE_URL`
+- `SPRING_DATASOURCE_USERNAME`
+- `SPRING_DATASOURCE_PASSWORD`
+
+### Pasos generales
 
 1. Sube este repositorio a GitHub.
-2. En Railway crea un proyecto nuevo con **Deploy from GitHub repo**.
-3. Selecciona este repositorio.
-4. En el servicio, agrega una variable:
-   `APP_JWT_SECRET=pon-aqui-una-clave-larga-y-segura-de-32-caracteres-o-mas`
-5. Opcional pero recomendado: agrega un volumen y montalo en `/app/data`.
-6. Si montaste el volumen, agrega tambien:
-   `DB_PATH=/app/data/gymdb`
+2. Crea el recurso en Azure usando este repositorio o la imagen Docker.
+3. Configura `APP_JWT_SECRET`.
+4. Si quieres persistencia con H2, configura `DB_PATH` hacia almacenamiento persistente.
+5. Despliega la app.
 
 ### Resultado esperado
 
-- URL publica de Railway: la API quedara accesible alli.
+- URL publica de Azure accesible.
 - Login: `POST /api/auth/login`
 - Registro: `POST /api/auth/register`
 - Miembros: `/api/members`
@@ -55,4 +71,4 @@ La app ya esta preparada para Railway:
 
 ### Nota importante
 
-Si no montas un volumen, la app funciona igual, pero la base H2 se reinicia cuando Railway reconstruye o reinicia el contenedor.
+Si no configuras almacenamiento persistente, la base H2 se puede perder cuando Azure recrea el contenedor o la instancia. Para un entorno mas serio, conviene usar Azure Database for PostgreSQL o MySQL.
